@@ -1,34 +1,44 @@
-// src/NewsletterForm.js
 import React, { useState } from 'react';
 import axios from 'axios';
 
 function NewsletterForm() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-    const handleSubmit = async (e) => {
+  const API_URL = process.env.REACT_APP_API_URL;
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     try {
-        const res = await axios.post('http://localhost:4000/subscribe', { email });
-        console.log(res.data);
-
-        // Formular ausblenden, egal ob Erfolg oder "Adresse schon eingetragen"
-        setSubmitted(true);
+      const res = await axios.post(`${API_URL}/subscribe`, { email });
+      console.log(res.data);
+      setMessage("Bitte bestätige Deine Anmeldung in der Bestätigungsmail.");
+      setSubmitted(true);
     } catch (err) {
-        console.error(err.response?.data);
+      console.error(err.response?.data);
 
-        // Falls die Mail schon eingetragen ist, trotzdem Formular ausblenden
-        if (err.response?.data?.error === "Adresse schon eingetragen") {
-        setSubmitted(true);
-        } else {
-        setError(err.response?.data?.error || "Fehler beim Senden der Anfrage");
+      if (err.response?.data?.error === "Adresse schon eingetragen") {
+        // Prüfen, ob bestätigt
+        try {
+          const confirmCheck = await axios.get(`${API_URL}/check-confirmation/${email}`);
+          if (confirmCheck.data.confirmed) {
+            setMessage("Deine E-Mail ist bereits bestätigt.");
+          } else {
+            setMessage("Du bist bereits eingetragen. Bitte bestätige Deine Adresse.");
+          }
+          setSubmitted(true);
+        } catch {
+          setError("Fehler beim Prüfen der Anmeldung.");
         }
+      } else {
+        setError(err.response?.data?.error || "Fehler beim Senden der Anfrage");
+      }
     }
-    };
-
+  };
 
   return (
     <div className="container mt-5">
@@ -50,7 +60,7 @@ function NewsletterForm() {
         </form>
       ) : (
         <div className="alert alert-success mt-3">
-          Bitte bestätige Deine Anmeldung in der Bestätigungsmail.
+          {message}
         </div>
       )}
     </div>

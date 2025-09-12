@@ -1,3 +1,4 @@
+import 'dotenv/config'; 
 import express from "express";
 import cors from "cors";
 import mysql from "mysql2/promise";
@@ -42,32 +43,57 @@ app.post("/subscribe", async (req, res) => {
   try {
     const { email } = req.body;
 
+    console.log("🔹 Neue Anmeldung erhalten:", email);  // <-- hier loggen wir die E-Mail
+
     // Validierung
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      console.log("❌ Ungültige E-Mail:", email);
       return res.status(400).json({ error: "Ungültige E-Mail-Adresse" });
     }
 
     // Prüfen, ob schon vorhanden
     const [rows] = await db.query("SELECT id FROM subscribers WHERE email = ?", [email]);
+    console.log("🔹 Prüfe, ob schon vorhanden:", rows);
+
     if (rows.length > 0) {
+      console.log("⚠️ Adresse schon eingetragen:", email);
       return res.status(400).json({ error: "Adresse schon eingetragen" });
     }
 
     // Hash generieren & speichern
     const hash = crypto.randomBytes(32).toString("hex");
-    await db.query("INSERT INTO subscribers (email, hash) VALUES (?, ?)", [email, hash]);
+    console.log("🔹 Generierter Hash:", hash);
 
-    // Double-Opt-In Mail (falls konfiguriert)
-    // ...
+    const result = await db.query(
+      "INSERT INTO subscribers (email, hash) VALUES (?, ?)",
+      [email, hash]
+    );
+    console.log("✅ Insert Result:", result);
 
-    // ✅ WICHTIG: Immer eine success-message zurückgeben
     return res.json({ message: "Bitte bestätige deine Anmeldung per E-Mail." });
+  } catch (err) {
+    console.error("❌ Fehler beim /subscribe:", err);
+    return res.status(500).json({ error: "Serverfehler" });
+  }
+});
+
+// GET /check-confirmation/:email
+app.get("/check-confirmation/:email", async (req, res) => {
+  try {
+    const { email } = req.params;
+    const [rows] = await db.query(
+      "SELECT confirmed_at FROM subscribers WHERE email = ?",
+      [email]
+    );
+
+    if (rows.length === 0) return res.json({ confirmed: false });
+
+    return res.json({ confirmed: !!rows[0].confirmed_at });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Serverfehler" });
   }
 });
-
 
 // 📌 GET /confirm/:hash – Double-Opt-In Link
 app.get("/confirm/:hash", async (req, res) => {

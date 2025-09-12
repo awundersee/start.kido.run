@@ -3,12 +3,16 @@ node_modules/
 package-lock.json
 
 # Backend
-# newsletter-backend/.env
+newsletter-backend/.env
+newsletter-backend/.env.local
+newsletter-backend/.env.production
 newsletter-backend/node_modules/
 
 # Frontend
 newsletter-frontend/node_modules/
 newsletter-frontend/.env
+newsletter-frontend/.env.local
+newsletter-frontend/.env.production
 
 # Logs
 *.log
@@ -31,4 +35,6 @@ newsletter-backend/dist/
 *.tmp
 
 # Environment files
-# .env
+.env
+.env.local
+.env.production
