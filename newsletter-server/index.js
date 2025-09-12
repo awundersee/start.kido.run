@@ -88,5 +88,5 @@ app.get(/.*/, (req, res) => {
 });
 
 // 🔹 Server starten
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`Backend läuft auf http://localhost:${PORT}`));
+const PORT = process.env.PORT || 4000; // NICHT fest auf 4000
+app.listen(PORT, () => console.log(`Backend läuft auf Port ${PORT}`));
