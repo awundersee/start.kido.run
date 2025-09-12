@@ -8,9 +8,7 @@ function NewsletterForm() {
   const [error, setError] = useState('');
 
  // 🔹 API-URL automatisch wählen
-  const API_URL =
-    process.env.REACT_APP_API_URL || // falls gesetzt
-    (window.location.hostname === "localhost" ? "http://localhost:4000" : "https://kido.run");
+  const API_URL = process.env.REACT_APP_API_URL; 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
