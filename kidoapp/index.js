@@ -49,7 +49,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // 📌 API-Routen
-app.post("/subscribe", async (req, res) => {
+app.post("/api/subscribe", async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: "Ungültige E-Mail" });
 
@@ -62,14 +62,14 @@ app.post("/subscribe", async (req, res) => {
   res.json({ message: "Bitte bestätige Deine Anmeldung per E-Mail." });
 });
 
-app.get("/check-confirmation/:email", async (req, res) => {
+app.get("/api/check-confirmation/:email", async (req, res) => {
   const { email } = req.params;
   const [rows] = await db.query("SELECT confirmed_at FROM subscribers WHERE email = ?", [email]);
   if (!rows.length) return res.json({ confirmed: false });
   return res.json({ confirmed: !!rows[0].confirmed_at });
 });
 
-app.get("/confirm/:hash", async (req, res) => {
+app.get("/api/confirm/:hash", async (req, res) => {
   const { hash } = req.params;
   const [rows] = await db.query("SELECT id, confirmed_at FROM subscribers WHERE hash = ?", [hash]);
   if (!rows.length) return res.status(400).send("Ungültiger Bestätigungslink.");
